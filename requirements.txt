@@ -1,0 +1,10 @@
+qrcode[pil]
+openpyxl
+pandas
+pyttsx3
+pillow
+opencv-python
+pyzbar
+numpy
+
+# pip install -r requirements.txt
