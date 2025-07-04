@@ -23,6 +23,9 @@ class SistemAntreanObat:
         self.qr_scanner = QRScanner()
         self.audio = AudioManager()
         
+        # Buat instance UI
+        self.ui = UI()
+        
         self.crud = CRUDHandler(self)
         
         self.initialize_daily_queue()
@@ -41,7 +44,7 @@ class SistemAntreanObat:
         pasien = self.db.cari_pasien(id_pasien).iloc[0]
         nama = pasien['nama']
         
-        UI.tampilkan_pemanggilan(pasien['nomor_antrean'], nama, waktu_panggil)
+        self.ui.tampilkan_pemanggilan(pasien['nomor_antrean'], nama, waktu_panggil)
         
         self.audio.speak(f"Perhatian, atas nama {nama}, silakan ke loket pengambilan obat. Waktu panggil {waktu_panggil.split()[1]}")
         
@@ -49,7 +52,7 @@ class SistemAntreanObat:
     
     def panggil_ulang(self):
         """Memanggil ulang pasien yang telah dipanggil sebelumnya"""
-        UI.clear_screen()
+        self.ui.clear_screen()
         print("=== PANGGIL ULANG PASIEN ===\n")
         
         # Cek apakah ada pasien yang sudah dipanggil
@@ -86,7 +89,7 @@ class SistemAntreanObat:
                 nomor = pasien['nomor_antrean']
                 
                 # Tampilkan pemanggilan dan suara
-                UI.tampilkan_pemanggilan(nomor, nama, is_ulang=True)
+                self.ui.tampilkan_pemanggilan(nomor, nama, is_ulang=True)
                 self.audio.speak(f"Pengulangan panggilan. Nomor antrean {nomor}, atas nama {nama}, silakan ke loket pengambilan obat")
             else:
                 print("\nNomor tidak valid!")
@@ -118,7 +121,7 @@ class SistemAntreanObat:
     
     def tandai_selesai(self):
         """Menandai pasien sebagai selesai setelah mengambil obat"""
-        UI.clear_screen()
+        self.ui.clear_screen()
         print("=== TANDAI PASIEN SELESAI ===\n")
         
         # Metode pencarian
@@ -227,12 +230,12 @@ class SistemAntreanObat:
     
     def jalankan(self):
         while True:
-            UI.tampilkan_banner(
+            self.ui.tampilkan_banner(
                 len(self.antrean.antrean_aktif),
                 len(self.antrean.sudah_dipanggil)
             )
             
-            choice = UI.tampilkan_menu()
+            choice = self.ui.tampilkan_menu()
             
             if choice == '1':
                 self.crud.daftarkan_pasien()     

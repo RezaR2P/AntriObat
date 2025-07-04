@@ -9,14 +9,15 @@ class CRUDHandler:
         self.qr_scanner = sistem_antrean.qr_scanner
         self.qr_generator = sistem_antrean.qr_generator
         self.qr_dir = sistem_antrean.qr_dir
+        
+        # Tambahkan UI instance
+        self.ui = sistem_antrean.ui
     
     # === CREATE ===
     
     def daftarkan_pasien(self):
         """Create - Mendaftarkan pasien baru"""
-        from ui import UI
-        
-        UI.clear_screen()
+        self.ui.clear_screen()
         print("=== PENDAFTARAN PASIEN BARU ===\n")
         
         nama = input("Nama Pasien: ")
@@ -41,8 +42,6 @@ class CRUDHandler:
     
     def tampilkan_antrean(self):
         """Read - Menampilkan daftar pasien dalam antrean"""
-        from ui import UI
-        
         daftar_antrean = []
         
         for id_pasien in self.antrean.antrean_aktif:
@@ -50,13 +49,11 @@ class CRUDHandler:
             if not pasien.empty:
                 daftar_antrean.append(pasien.iloc[0])
         
-        UI.tampilkan_antrean(daftar_antrean)
+        self.ui.tampilkan_antrean(daftar_antrean)
         input("\nTekan Enter untuk kembali ke menu...")
     
     def tampilkan_terpanggil(self):
         """Read - Menampilkan daftar pasien yang sudah dipanggil"""
-        from ui import UI
-        
         daftar_terpanggil = []
         
         for id_pasien in reversed(list(self.antrean.sudah_dipanggil)):
@@ -64,14 +61,12 @@ class CRUDHandler:
             if not pasien.empty:
                 daftar_terpanggil.append(pasien.iloc[0])
         
-        UI.tampilkan_terpanggil(daftar_terpanggil)
+        self.ui.tampilkan_terpanggil(daftar_terpanggil)
         input("\nTekan Enter untuk kembali ke menu...")
     
     def tampilkan_selesai(self):
         """Read - Menampilkan daftar pasien yang sudah selesai"""
-        from ui import UI
-        
-        UI.clear_screen()
+        self.ui.clear_screen()
         print("=== DAFTAR PASIEN SELESAI ===\n")
         
         df_hari_ini = self.db.get_pasien_hari_ini()
@@ -92,9 +87,7 @@ class CRUDHandler:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def cari_pasien(self):
-        from ui import UI
-        
-        UI.clear_screen()
+        self.ui.clear_screen()
         print("=== CARI DATA PASIEN ===\n")
         
         print("Cari pasien berdasarkan:")
@@ -121,16 +114,14 @@ class CRUDHandler:
         if hasil.empty:
             print("\nPasien tidak ditemukan!")
         else:
-            UI.tampilkan_hasil_pencarian(hasil)
+            self.ui.tampilkan_hasil_pencarian(hasil)
     
         input("\nTekan Enter untuk kembali ke menu...")
     
     # === UPDATE ===
     
     def edit_pasien(self):
-        from ui import UI
-        
-        UI.clear_screen()
+        self.ui.clear_screen()
         print("=== EDIT DATA PASIEN ===\n")
         
         print("Cari pasien berdasarkan:")
@@ -196,9 +187,7 @@ class CRUDHandler:
     # === DELETE ===
     
     def hapus_pasien(self):
-        from ui import UI
-        
-        UI.clear_screen()
+        self.ui.clear_screen()
         print("=== HAPUS DATA PASIEN ===\n")
         
         print("Cari pasien berdasarkan:")
