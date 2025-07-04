@@ -46,7 +46,7 @@ class SistemAntreanObat:
         
         self.ui.tampilkan_pemanggilan(pasien['nomor_antrean'], nama, waktu_panggil)
         
-        self.audio.speak(f"Perhatian, atas nama {nama}, silakan ke loket pengambilan obat. Waktu panggil {waktu_panggil.split()[1]}")
+        self.audio.speak(f"Perhatian, nomor antrean {pasien['nomor_antrean']}, atas nama {nama}, silakan ke loket pengambilan obat")
         
         input("\nTekan Enter untuk kembali ke menu...")
     
