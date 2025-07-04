@@ -3,12 +3,6 @@ import pandas as pd
 
 class CRUDHandler:
     def __init__(self, sistem_antrean):
-        """
-        Inisialisasi handler untuk operasi CRUD
-        
-        Args:
-            sistem_antrean: Objek SistemAntreanObat yang memiliki akses ke database, antrean, dll.
-        """
         self.sistem = sistem_antrean
         self.db = sistem_antrean.db
         self.antrean = sistem_antrean.antrean
@@ -80,7 +74,6 @@ class CRUDHandler:
         UI.clear_screen()
         print("=== DAFTAR PASIEN SELESAI ===\n")
         
-        # Ambil data pasien dengan status selesai
         df_hari_ini = self.db.get_pasien_hari_ini()
         selesai = df_hari_ini[df_hari_ini['status'] == 'selesai']
         
@@ -99,13 +92,11 @@ class CRUDHandler:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def cari_pasien(self):
-        """Read - Cari pasien dengan QR Code atau ID"""
         from ui import UI
         
         UI.clear_screen()
         print("=== CARI DATA PASIEN ===\n")
         
-        # Metode pencarian
         print("Cari pasien berdasarkan:")
         print("1. Scan QR Code")
         print("2. Input ID Pasien")
@@ -126,7 +117,6 @@ class CRUDHandler:
             input("\nTekan Enter untuk kembali ke menu...")
             return
         
-        # Cari dan tampilkan data pasien
         hasil = self.db.cari_pasien(id_pasien)
         if hasil.empty:
             print("\nPasien tidak ditemukan!")
@@ -138,13 +128,11 @@ class CRUDHandler:
     # === UPDATE ===
     
     def edit_pasien(self):
-        """Update - Mengubah data pasien"""
         from ui import UI
         
         UI.clear_screen()
         print("=== EDIT DATA PASIEN ===\n")
         
-        # Metode pencarian
         print("Cari pasien berdasarkan:")
         print("1. Scan QR Code")
         print("2. Input ID Pasien")
@@ -165,14 +153,12 @@ class CRUDHandler:
             input("\nTekan Enter untuk kembali ke menu...")
             return
         
-        # Cari dan tampilkan data pasien
         hasil = self.db.cari_pasien(id_pasien)
         if hasil.empty:
             print("\nPasien tidak ditemukan!")
             input("\nTekan Enter untuk kembali ke menu...")
             return
         
-        # Tampilkan data pasien saat ini
         pasien = hasil.iloc[0]
         print("\nData pasien saat ini:")
         print("-" * 70)
@@ -183,25 +169,21 @@ class CRUDHandler:
         print(f"Status       : {pasien['status']}")
         print("-" * 70)
         
-        # Input data baru
         print("\nMasukkan data baru (kosongkan jika tidak ingin mengubah):")
         nama_baru = input(f"Nama ({pasien['nama']}): ")
         no_rekam_medis_baru = input(f"No. Rekam Medis ({pasien['no_rekam_medis']}): ")
         
-        # Gunakan nilai lama jika input kosong
         if not nama_baru:
             nama_baru = pasien['nama']
         if not no_rekam_medis_baru:
             no_rekam_medis_baru = pasien['no_rekam_medis']
         
-        # Konfirmasi perubahan
         print("\nData yang akan diupdate:")
         print(f"Nama: {pasien['nama']} -> {nama_baru}")
         print(f"No. Rekam Medis: {pasien['no_rekam_medis']} -> {no_rekam_medis_baru}")
         
         confirm = input("\nApakah Anda yakin ingin mengubah data? (y/n): ")
         if confirm.lower() == 'y':
-            # Update data
             if self.db.update_data_pasien(id_pasien, nama_baru, no_rekam_medis_baru):
                 print("\nData pasien berhasil diupdate!")
             else:
@@ -214,13 +196,11 @@ class CRUDHandler:
     # === DELETE ===
     
     def hapus_pasien(self):
-        """Delete - Menghapus data pasien dari sistem"""
         from ui import UI
         
         UI.clear_screen()
         print("=== HAPUS DATA PASIEN ===\n")
         
-        # Metode pencarian
         print("Cari pasien berdasarkan:")
         print("1. Scan QR Code")
         print("2. Input ID Pasien")
@@ -241,14 +221,12 @@ class CRUDHandler:
             input("\nTekan Enter untuk kembali ke menu...")
             return
         
-        # Cari dan tampilkan data pasien
         hasil = self.db.cari_pasien(id_pasien)
         if hasil.empty:
             print("\nPasien tidak ditemukan!")
             input("\nTekan Enter untuk kembali ke menu...")
             return
         
-        # Tampilkan data pasien
         print("\nData pasien yang akan dihapus:")
         print("-" * 70)
         for _, pasien in hasil.iterrows():
@@ -259,22 +237,18 @@ class CRUDHandler:
             print(f"Status       : {pasien['status']}")
         print("-" * 70)
         
-        # Konfirmasi penghapusan
         confirm = input("\nAnda yakin ingin menghapus data pasien ini? (y/n): ")
         if confirm.lower() == 'y':
-            # Hapus dari antrean jika ada
             self.hapus_dari_antrean(id_pasien)
 
-            # Hapus file QR code jika ada
             qr_file_path = self.qr_dir / f"{id_pasien}.png"
             try:
                 if qr_file_path.exists():
-                    qr_file_path.unlink()  # Menghapus file QR code
+                    qr_file_path.unlink()
                     print(f"\nFile QR code berhasil dihapus: {qr_file_path}")
             except Exception as e:
                 print(f"\nGagal menghapus file QR code: {e}")
             
-            # Hapus dari database
             if self.db.hapus_pasien(id_pasien):
                 print("\nData pasien berhasil dihapus!")
             else:

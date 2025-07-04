@@ -10,7 +10,6 @@ class AudioManager:
             print(f"Error inisialisasi text-to-speech: {e}")
     
     def speak(self, text):
-        """Mengucapkan teks menggunakan text-to-speech"""
         if self.engine:
             try:
                 print(f"\nMemanggil dengan suara: {text}")
@@ -22,7 +21,6 @@ class AudioManager:
             print(f"\n[Suara tidak tersedia] {text}")
     
     def __del__(self):
-        """Destruktor untuk membersihkan resource"""
         try:
             if self.engine:
                 pass

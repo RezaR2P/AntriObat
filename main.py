@@ -1,6 +1,5 @@
 import datetime
 from pathlib import Path
-import pandas as pd
 
 from database import Database
 from qr_handler import QRGenerator, QRScanner
@@ -28,7 +27,6 @@ class SistemAntreanObat:
         
         self.initialize_daily_queue()
     
-    # Metode operasi non-CRUD dibiarkan di sini
     def panggil_pasien(self):
         id_pasien = self.antrean.panggil_berikutnya()
         
@@ -60,7 +58,6 @@ class SistemAntreanObat:
             input("\nTekan Enter untuk kembali ke menu...")
             return
         
-        # Tampilkan daftar pasien yang telah dipanggil
         print("\nDaftar pasien yang telah dipanggil:")
         print("-" * 70)
         print(f"{'No.':<5}{'Waktu Panggil':<25}{'Nama':<45}")

@@ -1,5 +1,4 @@
 import pandas as pd
-from pathlib import Path
 import datetime
 
 class Database:
@@ -14,7 +13,7 @@ class Database:
         else:
             # Buat dataframe kosong dengan kolom yang sesuai
             df = pd.DataFrame(columns=['id', 'nomor_antrean', 'nama', 'no_rekam_medis', 
-                                     'tanggal', 'status', 'waktu_daftar', 'waktu_panggil'])
+                                    'tanggal', 'status', 'waktu_daftar', 'waktu_panggil'])
             return df
 
     def save_data(self):
