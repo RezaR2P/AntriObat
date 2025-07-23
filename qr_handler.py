@@ -2,6 +2,8 @@ import qrcode
 import cv2
 from pyzbar.pyzbar import decode
 import numpy as np
+from PIL import Image
+import os
 
 class QRGenerator:
     def generate_qr_code(self, data, save_path):
@@ -9,6 +11,14 @@ class QRGenerator:
         img = qrcode.make(data)
         img.save(save_path)
         return save_path
+    
+    def show_qr_code(self, qr_path):
+        """Menampilkan QR code dari file"""
+        if os.path.exists(qr_path):
+            img = Image.open(qr_path)
+            img.show()
+        else:
+            raise FileNotFoundError(f"File QR code tidak ditemukan: {qr_path}")
 
 class QRScanner:
     def scan_from_camera(self):

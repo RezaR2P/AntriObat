@@ -23,6 +23,6 @@ class AudioManager:
     def __del__(self):
         try:
             if self.engine:
-                pass
+                self.engine.stop()
         except:
             pass

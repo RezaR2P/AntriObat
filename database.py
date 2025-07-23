@@ -1,12 +1,15 @@
 import pandas as pd
 import datetime
+import uuid
 
 class Database:
     def __init__(self, excel_path, master_pasien_path):
         self.excel_path = excel_path
         self.master_pasien_path = master_pasien_path
+        self.pemeriksaan_path = excel_path.parent / "data_pemeriksaan.xlsx"
         self.data_pasien = self.load_data()
         self.master_pasien = self.load_master_pasien()
+        self.data_pemeriksaan = self.load_data_pemeriksaan()
     
     def load_data(self):
         """Memuat data antrean harian dari file Excel"""
@@ -29,6 +32,17 @@ class Database:
             df = pd.DataFrame(columns=['id_pasien', 'nik', 'nama', 'jenis_kelamin', 'tempat_lahir',
                                     'tanggal_lahir', 'alamat', 'riwayat_penyakit', 'tanggal_daftar_pertama', 'qr_code_path'])
             return df
+    
+    def load_data_pemeriksaan(self):
+        """Memuat data pemeriksaan dari file Excel"""
+        if self.pemeriksaan_path.exists():
+            return pd.read_excel(str(self.pemeriksaan_path))
+        else:
+            # Buat dataframe kosong dengan kolom untuk data pemeriksaan
+            df = pd.DataFrame(columns=['id_pemeriksaan', 'id_pasien', 'nama_pasien', 'tanggal_pemeriksaan',
+                                    'keluhan', 'tekanan_darah', 'nadi', 'suhu', 'diagnosis', 'tindakan', 
+                                    'resep', 'catatan', 'waktu_periksa'])
+            return df
 
     def save_data(self):
         """Menyimpan data antrean harian ke file Excel"""
@@ -37,6 +51,10 @@ class Database:
     def save_master_pasien(self):
         """Menyimpan data master pasien ke file Excel"""
         self.master_pasien.to_excel(str(self.master_pasien_path), index=False)
+    
+    def save_data_pemeriksaan(self):
+        """Menyimpan data pemeriksaan ke file Excel"""
+        self.data_pemeriksaan.to_excel(str(self.pemeriksaan_path), index=False)
     
     def tambah_pasien_baru_master(self, id_pasien, nik, nama, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, riwayat_penyakit, qr_code_path):
         """Menambahkan pasien baru ke database master"""
@@ -96,6 +114,41 @@ class Database:
             if waktu_panggil:
                 self.data_pasien.at[idx[0], 'waktu_panggil'] = waktu_panggil
             self.save_data()
+    
+    def simpan_data_pemeriksaan(self, data_pemeriksaan):
+        """Menyimpan data hasil pemeriksaan dokter"""
+        # Generate ID unik untuk pemeriksaan
+        id_pemeriksaan = str(uuid.uuid4())[:8]
+        
+        # Ambil nama pasien dari data master
+        master_data = self.master_pasien[self.master_pasien['id_pasien'] == data_pemeriksaan['id_pasien']]
+        nama_pasien = master_data.iloc[0]['nama'] if not master_data.empty else 'Unknown'
+        
+        # Siapkan data pemeriksaan untuk disimpan
+        pemeriksaan_baru = {
+            'id_pemeriksaan': id_pemeriksaan,
+            'id_pasien': data_pemeriksaan['id_pasien'],
+            'nama_pasien': nama_pasien,
+            'tanggal_pemeriksaan': datetime.date.today().strftime("%Y-%m-%d"),
+            'keluhan': data_pemeriksaan.get('keluhan', ''),
+            'tekanan_darah': data_pemeriksaan.get('tekanan_darah', ''),
+            'nadi': data_pemeriksaan.get('nadi', ''),
+            'suhu': data_pemeriksaan.get('suhu', ''),
+            'diagnosis': data_pemeriksaan.get('diagnosis', ''),
+            'tindakan': data_pemeriksaan.get('tindakan', ''),
+            'resep': data_pemeriksaan.get('resep', ''),
+            'catatan': data_pemeriksaan.get('catatan', ''),
+            'waktu_periksa': data_pemeriksaan.get('waktu_periksa', '')
+        }
+        
+        # Tambahkan ke DataFrame pemeriksaan dan simpan
+        self.data_pemeriksaan = pd.concat([self.data_pemeriksaan, pd.DataFrame([pemeriksaan_baru])], ignore_index=True)
+        self.save_data_pemeriksaan()
+        return id_pemeriksaan
+    
+    def get_data_pemeriksaan_by_pasien(self, id_pasien):
+        """Mendapatkan data pemeriksaan berdasarkan ID pasien"""
+        return self.data_pemeriksaan[self.data_pemeriksaan['id_pasien'] == id_pasien]
 
     def hapus_pasien(self, id_pasien):
         """Menghapus pasien dari database berdasarkan ID"""
@@ -121,6 +174,11 @@ class Database:
             nik_str = str(nik).strip()
             return self.master_pasien[self.master_pasien['nik'].str.strip() == nik_str]
         return pd.DataFrame()
+    
+    def cari_pasien_by_nik(self, nik):
+        """Cari pasien di database master berdasarkan NIK saja"""
+        nik_str = str(nik).strip()
+        return self.master_pasien[self.master_pasien['nik'].str.strip() == nik_str]
     
     def cari_pasien(self, id_pasien):
         """Cari pasien berdasarkan ID di antrean harian"""

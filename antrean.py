@@ -39,7 +39,22 @@ class AntreanManager:
         for id_pasien in terpanggil_ids:
             self.sudah_dipanggil.append(id_pasien)
 
-    
-    def __del__(self):
-        self.antrean_aktif.clear()
-        self.sudah_dipanggil.clear()
+    def hapus_dari_dipanggil(self, id_pasien):
+        """Menghapus pasien dari daftar sudah dipanggil"""
+        # Konversi ke list, hapus, lalu buat deque baru
+        if id_pasien in self.sudah_dipanggil:
+            temp_list = list(self.sudah_dipanggil)
+            temp_list.remove(id_pasien)
+            self.sudah_dipanggil = deque(temp_list)
+            return True
+        return False
+
+    def hapus_dari_aktif(self, id_pasien):
+        """Menghapus pasien dari antrean aktif"""
+        if id_pasien in self.antrean_aktif:
+            # Konversi ke list, hapus, lalu buat deque baru untuk keamanan
+            temp_list = list(self.antrean_aktif)
+            temp_list.remove(id_pasien)
+            self.antrean_aktif = deque(temp_list)
+            return True
+        return False

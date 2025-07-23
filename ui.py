@@ -22,8 +22,8 @@ class UI:
     def tampilkan_menu(self):
         """Menampilkan menu utama aplikasi"""
         print("\nMENU:")
-        print("1. Pendaftaran Pasien Baru (Belum Punya Kartu)")
-        print("2. Pendaftaran Antrean (Sudah Punya Kartu - Scan QR)")
+        print("1. Pendaftaran Pasien Baru (Buat Akun & QR Code)")
+        print("2. Pendaftaran Antrean (Scan QR / Input NIK)")
         print("3. Lihat Antrean Saat Ini")
         print("4. Lihat Pasien Terpanggil")
         print("5. Lihat Pasien Selesai")
@@ -32,11 +32,12 @@ class UI:
         print("8. Hapus Data Pasien")
         print("9. Panggil Pasien Berikutnya")
         print("10. Panggil Ulang Pasien Terakhir")
-        print("11. Tandai Pasien Selesai")
-        print("12. Reset Antrean Harian")
+        print("11. Proses Pemeriksaan Dokter")
+        print("12. Proses Farmasi/Pengambilan Obat (Auto Selesai)")
+        print("13. Cari & Cetak Ulang QR Code (dengan NIK)")
         print("0. Keluar")
         
-        choice = input("\nPilih menu (0-12): ")
+        choice = input("\nPilih menu (0-13): ")
         return choice
     
     def tampilkan_pemanggilan(self, nomor, nama, waktu_panggil, poli=None, is_ulang=False):
@@ -204,20 +205,20 @@ class UI:
             else:
                 print("Pilihan tidak valid! Silakan pilih 1-3.")
     
-    def tampilkan_qr_berhasil(self, nama, no_antrean, poli, qr_path):
-        """Menampilkan informasi setelah QR berhasil dibuat"""
+    def tampilkan_pendaftaran_master_berhasil(self, nama, qr_path):
+        """Menampilkan informasi setelah pendaftaran master berhasil (tanpa antrean)"""
         self.clear_screen()
         print("="*70)
-        print("           PENDAFTARAN BERHASIL!")
+        print("           PENDAFTARAN PASIEN BERHASIL!")
         print("="*70)
         print(f"Nama          : {nama}")
-        print(f"No. Antrean   : {no_antrean}")
-        print(f"Poli          : {poli}")
         print(f"QR Code       : {qr_path}")
         print("="*70)
-        print("\nSIMPAN QR CODE INI UNTUK KUNJUNGAN SELANJUTNYA!")
-        print("Anda dapat menggunakan QR Code ini setiap kali datang ke puskesmas.")
-        print("QR Code Anda telah tersimpan dan siap digunakan.")
+        print("\n🎉 SELAMAT! Anda telah terdaftar sebagai pasien puskesmas!")
+        print("\n📋 LANGKAH SELANJUTNYA:")
+        print("1. SIMPAN QR CODE ini dengan baik")
+        print("2. Gunakan Menu '2. Pendaftaran Antrean' untuk daftar antrean")
+        print("3. Scan QR Code dan pilih poli saat ingin berobat")
     
     def tampilkan_antrean_lama_berhasil(self, nama, no_antrean, poli):
         """Menampilkan informasi setelah pasien lama berhasil daftar antrean"""
@@ -375,3 +376,22 @@ class UI:
         
         print("-" * 80)
         print("* = Ada perubahan")
+    
+    def input_nik_valid(self):
+        """Helper untuk input NIK yang valid"""
+        while True:
+            nik = input("\nMasukkan NIK (16 digit): ").strip()
+            
+            if not nik:
+                print("NIK tidak boleh kosong!")
+                continue
+                
+            if len(nik) != 16:
+                print("NIK harus 16 digit!")
+                continue
+                
+            if not nik.isdigit():
+                print("NIK hanya boleh berisi angka!")
+                continue
+                
+            return nik
