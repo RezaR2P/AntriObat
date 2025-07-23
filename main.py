@@ -54,9 +54,7 @@ class SistemAntreanObat:
         # Cari data pasien dengan validasi
         hasil_pasien = self.db.cari_pasien(id_pasien)
         if hasil_pasien.empty:
-            print(f"\nError: Data pasien {id_pasien} tidak ditemukan!")
-            input("\nTekan Enter untuk kembali ke menu...")
-            return
+            return self._handle_patient_not_found(id_pasien)
             
         pasien = hasil_pasien.iloc[0]
         nama = pasien['nama']
@@ -104,9 +102,7 @@ class SistemAntreanObat:
                 # Ambil data pasien dengan validasi
                 hasil_pasien = self.db.cari_pasien(id_pasien)
                 if hasil_pasien.empty:
-                    print(f"\nError: Data pasien {id_pasien} tidak ditemukan!")
-                    input("\nTekan Enter untuk kembali ke menu...")
-                    return
+                    return self._handle_patient_not_found(id_pasien)
                     
                 pasien = hasil_pasien.iloc[0]
                 nama = pasien['nama']
@@ -169,8 +165,7 @@ class SistemAntreanObat:
         """Input hasil pemeriksaan dokter"""
         hasil_pasien = self.db.cari_pasien(id_pasien)
         if hasil_pasien.empty:
-            print(f"\nError: Data pasien {id_pasien} tidak ditemukan!")
-            return
+            return self._handle_patient_not_found(id_pasien)
             
         pasien = hasil_pasien.iloc[0]
         
@@ -268,8 +263,7 @@ class SistemAntreanObat:
         """Proses pemberian obat dan edukasi"""
         hasil_pasien = self.db.cari_pasien(id_pasien)
         if hasil_pasien.empty:
-            print(f"\nError: Data pasien {id_pasien} tidak ditemukan!")
-            return
+            return self._handle_patient_not_found(id_pasien)
             
         pasien = hasil_pasien.iloc[0]
         
