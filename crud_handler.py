@@ -456,14 +456,15 @@ class CRUDHandler:
     def cari_dan_cetak_ulang_qr(self):
         """Fitur pencarian QR code dengan NIK dan cetak ulang"""
         while True:
-            print("\n" + "="*60)
+            self.ui.clear_screen()
+            print("="*60)
             print("           PENCARIAN & CETAK ULANG QR CODE")
             print("="*60)
             print("1. Cari QR dengan NIK")
             print("0. Kembali ke Menu Utama")
             print("-"*60)
             
-            pilihan = input("Pilih menu: ").strip()
+            pilihan = input("Pilih menu (0-1): ").strip()
             
             if pilihan == "0":
                 break
@@ -474,7 +475,7 @@ class CRUDHandler:
                     continue
                 
                 # Cari pasien berdasarkan NIK
-                pasien_data = self.db.cari_pasien_by_nik(nik)
+                pasien_data = self.db.cari_pasien_master(nik=nik)
                 
                 if pasien_data.empty:
                     print(f"\nPasien dengan NIK {nik} tidak ditemukan!")
@@ -482,49 +483,47 @@ class CRUDHandler:
                     continue
                 
                 # Tampilkan data pasien yang ditemukan
-                print("\nData pasien ditemukan:")
-                print("-" * 70)
-                for _, pasien in pasien_data.iterrows():
-                    print(f"ID           : {pasien['id']}")
-                    print(f"Nama         : {pasien['nama']}")
-                    print(f"NIK          : {pasien.get('nik', '-')}")
-                    print(f"No. Telepon  : {pasien.get('no_telepon', '-')}")
-                    print(f"Alamat       : {pasien.get('alamat', '-')}")
-                    print(f"Tanggal Lahir: {pasien.get('tanggal_lahir', '-')}")
-                print("-" * 70)
+                pasien = pasien_data.iloc[0]
+                print("\n✅ Data pasien ditemukan:")
+                print("-" * 50)
+                print(f"ID Pasien    : {pasien['id_pasien']}")
+                print(f"Nama         : {pasien['nama']}")
+                print(f"NIK          : {pasien['nik']}")
+                print(f"Jenis Kelamin: {pasien.get('jenis_kelamin', '-')}")
+                print(f"Tempat Lahir : {pasien.get('tempat_lahir', '-')}")
+                print(f"Tanggal Lahir: {pasien.get('tanggal_lahir', '-')}")
+                print(f"Alamat       : {pasien.get('alamat', '-')}")
+                print("-" * 50)
                 
                 # Konfirmasi cetak ulang QR
-                confirm = input("\nCetak ulang QR code untuk pasien ini? (y/n): ")
-                if confirm.lower() == 'y':
-                    pasien = pasien_data.iloc[0]  # Ambil data pasien pertama
-                    id_pasien = pasien['id']
+                confirm = input("\nCetak ulang QR code untuk pasien ini? (y/n): ").strip().lower()
+                if confirm == 'y':
+                    id_pasien = pasien['id_pasien']
                     
                     try:
                         # Generate ulang QR code
-                        qr_path = self.qr_generator.generate_qr_code(id_pasien, str(self.qr_dir / f"{id_pasien}.png"))
-                        if qr_path:
-                            print(f"\nQR Code berhasil digenerate ulang!")
-                            print(f"Lokasi file: {qr_path}")
-                            
-                            # Tampilkan QR code jika memungkinkan
-                            try:
-                                self.qr_generator.show_qr_code(qr_path)
-                                print("\nQR Code ditampilkan di jendela terpisah.")
-                                print("Silakan screenshot atau print QR code tersebut.")
-                            except Exception as e:
-                                print(f"Tidak dapat menampilkan QR code: {e}")
-                                print("Silakan buka file QR code secara manual untuk dicetak.")
-                            
-                            input("\nTekan Enter untuk melanjutkan...")
-                        else:
-                            print("\nGagal generate QR code!")
-                            input("\nTekan Enter untuk melanjutkan...")
+                        qr_filename = f"{id_pasien}.png"
+                        qr_path = self.qr_generator.generate_qr_code(id_pasien, str(self.qr_dir / qr_filename))
+                        
+                        print(f"\n✅ QR Code berhasil digenerate ulang!")
+                        print(f"📁 Lokasi file: {qr_path}")
+                        
+                        # Tampilkan QR code jika memungkinkan
+                        try:
+                            self.qr_generator.show_qr_code(qr_path)
+                            print("\n🖼️  QR Code ditampilkan di jendela terpisah.")
+                            print("📋 Silakan screenshot atau print QR code tersebut.")
+                        except Exception as e:
+                            print(f"⚠️  Tidak dapat menampilkan QR code: {e}")
+                            print("📁 Silakan buka file QR code secara manual untuk dicetak.")
+                        
+                        input("\nTekan Enter untuk melanjutkan...")
                     except Exception as e:
-                        print(f"\nError saat generate QR code: {e}")
+                        print(f"\n❌ Error saat generate QR code: {e}")
                         input("\nTekan Enter untuk melanjutkan...")
                 else:
-                    print("\nCetak ulang QR dibatalkan.")
+                    print("\n❌ Cetak ulang QR dibatalkan.")
                     input("\nTekan Enter untuk melanjutkan...")
             else:
-                print("\nPilihan tidak valid!")
+                print(f"\n❌ Pilihan '{pilihan}' tidak valid! Pilih 0 atau 1.")
                 input("\nTekan Enter untuk melanjutkan...")

@@ -143,7 +143,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-data/
+data/qr_codes/
+data/*.xlsx
+
 
 # Spyder project settings
 .spyderproject
