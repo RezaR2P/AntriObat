@@ -15,27 +15,19 @@ class SistemAntreanObat:
         self.excel_path = self.base_dir / "antrean_harian.xlsx"
         self.master_pasien_path = self.base_dir / "master_pasien.xlsx"
         self.last_date_file = self.base_dir / "last_date.txt"
-        
         self.base_dir.mkdir(exist_ok=True)
         self.qr_dir.mkdir(parents=True, exist_ok=True)
-        
         self.db = Database(self.excel_path, self.master_pasien_path)
         self.antrean = AntreanManager()
         self.qr_generator = QRGenerator()
         self.qr_scanner = QRScanner()
         self.audio = AudioManager()
-        
-        # Buat instance UI
-        self.ui = UI()
-        
+        self.ui = UI()  
         self.crud = CRUDHandler(self)
-        
-        # Check for automatic daily reset before initializing queue
         self.check_and_auto_reset_daily()
         self.initialize_daily_queue()
     
     def _handle_patient_not_found(self, id_pasien):
-        """Helper method untuk handling pasien tidak ditemukan"""
         print(f"\nError: Data pasien {id_pasien} tidak ditemukan!")
         input("\nTekan Enter untuk kembali ke menu...")
         return None
@@ -50,8 +42,7 @@ class SistemAntreanObat:
         
         waktu_panggil = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.db.update_status_pasien(id_pasien, 'terpanggil', waktu_panggil)
-        
-        # Cari data pasien dengan validasi
+
         hasil_pasien = self.db.cari_pasien(id_pasien)
         if hasil_pasien.empty:
             return self._handle_patient_not_found(id_pasien)
@@ -61,17 +52,14 @@ class SistemAntreanObat:
         poli = pasien.get('poli', 'Poli')
         
         self.ui.tampilkan_pemanggilan(pasien['nomor_antrean'], nama, waktu_panggil, poli)
-        
         self.audio.speak(f"Perhatian, nomor antrean {pasien['nomor_antrean']}, atas nama {nama}, silakan ke {poli}")
         
         input("\nTekan Enter untuk kembali ke menu...")
     
     def panggil_ulang(self):
-        """Memanggil ulang pasien yang telah dipanggil sebelumnya"""
         self.ui.clear_screen()
         print("=== PANGGIL ULANG PASIEN ===\n")
-        
-        # Cek apakah ada pasien yang sudah dipanggil
+
         if not self.antrean.sudah_dipanggil:
             print("\nBelum ada pasien yang dipanggil!")
             input("\nTekan Enter untuk kembali ke menu...")
@@ -90,16 +78,14 @@ class SistemAntreanObat:
                 waktu_panggil = p['waktu_panggil'] if 'waktu_panggil' in p else '-'
                 print(f"{i:<5}{waktu_panggil:<25}{p['nama']:<30}")  
                 daftar_terpanggil.append(p['id'])
-        
-        # Pilih pasien untuk dipanggil ulang
+
         pilihan = input("\nPilih nomor pasien yang akan dipanggil ulang (1-{}): ".format(len(daftar_terpanggil)))
         
         try:
             idx = int(pilihan) - 1
             if 0 <= idx < len(daftar_terpanggil):
                 id_pasien = daftar_terpanggil[idx]
-                
-                # Ambil data pasien dengan validasi
+
                 hasil_pasien = self.db.cari_pasien(id_pasien)
                 if hasil_pasien.empty:
                     return self._handle_patient_not_found(id_pasien)
@@ -109,8 +95,7 @@ class SistemAntreanObat:
                 nomor = pasien['nomor_antrean']
                 poli = pasien.get('poli', 'Poli')
                 waktu_panggil = pasien.get('waktu_panggil', 'Tidak tersedia')
-                
-                # Tampilkan pemanggilan dan suara
+
                 self.ui.tampilkan_pemanggilan(nomor, nama, waktu_panggil, poli, is_ulang=True)
                 self.audio.speak(f"Pengulangan panggilan. Nomor antrean {nomor}, atas nama {nama}, silakan ke {poli}")
             else:
@@ -121,11 +106,9 @@ class SistemAntreanObat:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def proses_pemeriksaan_dokter(self):
-        """Proses pemeriksaan dokter setelah pasien dipanggil"""
         self.ui.clear_screen()
         print("=== PROSES PEMERIKSAAN DOKTER ===\n")
-        
-        # Pilih pasien yang sudah dipanggil
+
         if not self.antrean.sudah_dipanggil:
             print("\nTidak ada pasien yang telah dipanggil!")
             input("\nTekan Enter untuk kembali ke menu...")
@@ -146,7 +129,6 @@ class SistemAntreanObat:
                 print(f"{i:<5}{waktu_panggil:<25}{p['nama']:<30}{status:<10}")
                 daftar_terpanggil.append(p['id'])
         
-        # Pilih pasien untuk diperiksa
         try:
             pilihan = input(f"\nPilih nomor pasien yang akan diperiksa (1-{len(daftar_terpanggil)}): ")
             idx = int(pilihan) - 1
@@ -162,7 +144,6 @@ class SistemAntreanObat:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def _input_hasil_pemeriksaan(self, id_pasien):
-        """Input hasil pemeriksaan dokter"""
         hasil_pasien = self.db.cari_pasien(id_pasien)
         if hasil_pasien.empty:
             return self._handle_patient_not_found(id_pasien)
@@ -170,10 +151,7 @@ class SistemAntreanObat:
         pasien = hasil_pasien.iloc[0]
         
         print(f"\n=== PEMERIKSAAN PASIEN: {pasien['nama']} ===\n")
-        
-        # Input keluhan
         keluhan = input("Keluhan utama: ").strip()
-        
         print("\nVital Signs:")
         tekanan_darah = input("Tekanan darah (mmHg): ").strip()
         nadi = input("Nadi (x/menit): ").strip()
@@ -184,14 +162,11 @@ class SistemAntreanObat:
         tindakan = input("Tindakan: ").strip()
         resep = input("Resep obat: ").strip()
         catatan = input("Catatan dokter: ").strip()
-        
-        # Simpan hasil pemeriksaan ke database
+
         waktu_periksa = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Update status menjadi 'diperiksa'
+
         self.db.update_status_pasien(id_pasien, 'diperiksa', waktu_periksa)
-        
-        # Simpan data pemeriksaan (bisa ditambahkan ke database)
+
         data_pemeriksaan = {
             'id_pasien': id_pasien,
             'keluhan': keluhan,
@@ -205,7 +180,6 @@ class SistemAntreanObat:
             'waktu_periksa': waktu_periksa
         }
         
-        # Simpan ke database pemeriksaan
         id_pemeriksaan = self.db.simpan_data_pemeriksaan(data_pemeriksaan)
         
         print(f"\n✓ Pemeriksaan untuk {pasien['nama']} berhasil disimpan")
@@ -218,11 +192,9 @@ class SistemAntreanObat:
             print("\n➡️  Pasien dapat langsung ke bagian farmasi untuk mengambil obat")
     
     def proses_farmasi(self):
-        """Proses penyiapan dan pemberian obat"""
         self.ui.clear_screen()
         print("=== PROSES FARMASI ===\n")
-        
-        # Tampilkan pasien yang sudah diperiksa dokter
+
         df_hari_ini = self.db.get_pasien_hari_ini()
         pasien_diperiksa = df_hari_ini[df_hari_ini['status'] == 'diperiksa']
         
@@ -243,8 +215,7 @@ class SistemAntreanObat:
             nik = pasien.get('nik', '-')
             print(f"{i:<5}{pasien['nama']:<25}{nik:<20}{poli:<15}{waktu:<15}")
             daftar_pasien.append(pasien['id'])
-        
-        # Pilih pasien untuk proses farmasi
+
         try:
             pilihan = input(f"\nPilih nomor pasien untuk proses farmasi (1-{len(daftar_pasien)}): ")
             idx = int(pilihan) - 1
@@ -260,7 +231,6 @@ class SistemAntreanObat:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def _proses_pemberian_obat(self, id_pasien):
-        """Proses pemberian obat dan edukasi"""
         hasil_pasien = self.db.cari_pasien(id_pasien)
         if hasil_pasien.empty:
             return self._handle_patient_not_found(id_pasien)
@@ -268,11 +238,10 @@ class SistemAntreanObat:
         pasien = hasil_pasien.iloc[0]
         
         print(f"\n=== PEMBERIAN OBAT: {pasien['nama']} ===\n")
-        
-        # Tampilkan data pemeriksaan dan resep dari database
+
         data_pemeriksaan = self.db.get_data_pemeriksaan_by_pasien(id_pasien)
         if not data_pemeriksaan.empty:
-            pemeriksaan_terakhir = data_pemeriksaan.iloc[-1]  # Ambil pemeriksaan terakhir
+            pemeriksaan_terakhir = data_pemeriksaan.iloc[-1]
             
             print("📋 DATA PEMERIKSAAN DOKTER:")
             print("-" * 50)
@@ -296,21 +265,18 @@ class SistemAntreanObat:
             print("-" * 50)
         else:
             print("⚠️ Data pemeriksaan tidak ditemukan!")
-        
-        # Input proses farmasi
+
         print("\nProses Farmasi:")
         obat_tersedia = input("Apakah semua obat tersedia? (y/n): ").lower()
         
         if obat_tersedia == 'y':
             print("\n✓ Semua obat tersedia")
-            
-            # Input edukasi obat
+
             print("\nEdukasi Pasien:")
             cara_minum = input("Cara minum obat: ").strip()
             efek_samping = input("Peringatan efek samping: ").strip()
             catatan_farmasi = input("Catatan tambahan: ").strip()
-            
-            # Konfirmasi pemberian obat
+
             print(f"\n📋 RINGKASAN PEMBERIAN OBAT:")
             print(f"Pasien: {pasien['nama']}")
             if cara_minum:
@@ -319,16 +285,12 @@ class SistemAntreanObat:
                 print(f"Peringatan: {efek_samping}")
             if catatan_farmasi:
                 print(f"Catatan: {catatan_farmasi}")
-            
-            # Konfirmasi sebelum memberikan obat
+
             konfirmasi = input("\nApakah obat sudah diberikan kepada pasien? (y/n): ").lower()
             
             if konfirmasi == 'y':
-                # Langsung update status menjadi 'selesai' (otomatis)
                 waktu_selesai = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.db.update_status_pasien(id_pasien, 'selesai', waktu_selesai)
-                
-                # Hapus dari antrean sudah_dipanggil jika ada
                 self.antrean.hapus_dari_dipanggil(id_pasien)
                 
                 print(f"\n🎉 PROSES SELESAI!")
@@ -347,20 +309,17 @@ class SistemAntreanObat:
                 print(f"\n📝 WAKTU SELESAI: {waktu_selesai}")
                 
             else:
-                # Jika belum diberikan, status tetap 'siap_ambil_obat'
                 waktu_siap = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.db.update_status_pasien(id_pasien, 'siap_ambil_obat', waktu_siap)
                 
                 print(f"\n⏳ Obat untuk {pasien['nama']} sudah siap")
                 print(f"Status pasien: SIAP AMBIL OBAT")
-                print("Pasien dapat mengambil obat kapan saja, lalu gunakan Menu 13 untuk menandai selesai.")
                 
         else:
             print("\n⚠️ Ada obat yang tidak tersedia")
             obat_kosong = input("Obat yang kosong: ").strip()
             estimasi = input("Estimasi ketersediaan: ").strip()
             
-            # Update status menjadi 'obat_tidak_tersedia'
             waktu_update = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.db.update_status_pasien(id_pasien, 'obat_tidak_tersedia', waktu_update)
             
@@ -368,7 +327,6 @@ class SistemAntreanObat:
             if estimasi:
                 print(f"Estimasi tersedia: {estimasi}")
             print(f"Status pasien: OBAT TIDAK TERSEDIA")
-            
             print(f"\n📍 INFORMASI UNTUK PASIEN:")
             print(f"Karena obat tidak tersedia di fasilitas ini,")
             print(f"pasien dapat membeli obat di apotek terdekat dengan")
@@ -379,8 +337,7 @@ class SistemAntreanObat:
     def check_and_auto_reset_daily(self):
         """Cek apakah tanggal sudah berganti dan lakukan reset otomatis nomor antrean"""
         tanggal_sekarang = datetime.date.today().strftime("%Y-%m-%d")
-        
-        # Cek tanggal terakhir dari file
+
         tanggal_terakhir = None
         if self.last_date_file.exists():
             try:
@@ -388,22 +345,19 @@ class SistemAntreanObat:
                     tanggal_terakhir = f.read().strip()
             except:
                 tanggal_terakhir = None
-        
-        # Jika tanggal berbeda atau file tidak ada, lakukan reset otomatis
+
         if tanggal_terakhir != tanggal_sekarang:
             if tanggal_terakhir is not None:  # Jika bukan pertama kali
                 print(f"\n🔄 RESET OTOMATIS NOMOR ANTREAN")
                 print(f"Tanggal berubah dari {tanggal_terakhir} ke {tanggal_sekarang}")
                 print("Nomor antrean akan dimulai dari 1 untuk hari ini...")
-                
-                # Hanya reset antrean manager (queue), bukan database
+
                 self.antrean.reset()
                 
                 print("✅ Nomor antrean berhasil direset untuk hari baru!")
                 print("📝 Data antrean sebelumnya tetap tersimpan di database")
                 print("="*60)
-            
-            # Simpan tanggal sekarang
+
             try:
                 with open(self.last_date_file, 'w') as f:
                     f.write(tanggal_sekarang)
@@ -423,7 +377,6 @@ class SistemAntreanObat:
     
     def jalankan(self):
         while True:
-            # Check for date change before showing menu
             self.check_and_auto_reset_daily()
             
             self.ui.tampilkan_banner(

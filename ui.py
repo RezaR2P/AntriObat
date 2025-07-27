@@ -5,22 +5,18 @@ import datetime
 
 class UI:
     def clear_screen(self):
-        """Membersihkan layar terminal"""
         os.system('cls' if platform.system() == 'Windows' else 'clear')
     
     def tampilkan_banner(self, menunggu, terpanggil):
-        """Menampilkan banner aplikasi"""
         self.clear_screen()
         print("="*70)
         print("                SISTEM ANTREAN PUSKESMAS")
         print("="*70)
-        
         print(f"Jumlah antrean menunggu : {menunggu}")
         print(f"Jumlah pasien terpanggil: {terpanggil}")
         print("="*70)
     
     def tampilkan_menu(self):
-        """Menampilkan menu utama aplikasi"""
         print("\nMENU:")
         print("1. Pendaftaran Pasien Baru (Buat Akun & QR Code)")
         print("2. Pendaftaran Antrean (Scan QR / Input NIK)")
@@ -41,7 +37,6 @@ class UI:
         return choice
     
     def tampilkan_pemanggilan(self, nomor, nama, waktu_panggil, poli=None, is_ulang=False):
-        """Menampilkan panel pemanggilan"""
         self.clear_screen()
         print("\n" + "="*70)
         if is_ulang:
@@ -56,7 +51,6 @@ class UI:
         print("="*70)
     
     def tampilkan_antrean(self, daftar_antrean):
-        """Menampilkan daftar antrean"""
         self.clear_screen()
         print("=== ANTREAN SAAT INI ===\n")
         
@@ -74,7 +68,6 @@ class UI:
                 print(f"{i:<5}{pasien['nomor_antrean']:<15}{pasien['nama']:<30}{nik:<20}{poli:<15}")
     
     def tampilkan_terpanggil(self, daftar_pasien):
-        """Menampilkan daftar pasien yang telah dipanggil"""
         self.clear_screen()
         print("=== DAFTAR PASIEN TERPANGGIL ===\n")
         
@@ -92,7 +85,6 @@ class UI:
             print(f"{i:<5}{pasien['nama']:<25}{waktu_panggil:<25}{pasien['status']:<20}{poli:<30}")
     
     def tampilkan_hasil_pencarian(self, hasil):
-        """Menampilkan hasil pencarian pasien"""
         if hasil.empty:
             print("\nPasien tidak ditemukan!")
         else:
@@ -111,13 +103,11 @@ class UI:
                 print("-" * 90)
     
     def form_pendaftaran_pasien_baru(self):
-        """Form untuk pendaftaran pasien baru di puskesmas"""
         self.clear_screen()
         print("=== PENDAFTARAN PASIEN BARU PUSKESMAS ===\n")
         print("Silakan lengkapi data berikut:")
         print("-" * 50)
         
-        # NIK (wajib dan harus 16 digit)
         while True:
             nik = input("NIK (16 digit): ").strip()
             if len(nik) == 16 and nik.isdigit():
@@ -125,13 +115,11 @@ class UI:
             else:
                 print("NIK harus 16 digit angka! Silakan coba lagi.")
         
-        # Nama lengkap (wajib)
         nama = input("Nama Lengkap: ").strip()
         while not nama:
             print("Nama tidak boleh kosong!")
             nama = input("Nama Lengkap: ").strip()
         
-        # Jenis kelamin
         while True:
             print("\nJenis Kelamin:")
             print("1. Laki-laki")
@@ -145,14 +133,12 @@ class UI:
                 break
             else:
                 print("Pilihan tidak valid!")
-        
-        # Tempat lahir
+
         tempat_lahir = input("Tempat Lahir: ").strip()
         while not tempat_lahir:
             print("Tempat lahir tidak boleh kosong!")
             tempat_lahir = input("Tempat Lahir: ").strip()
-        
-        # Tanggal lahir
+
         while True:
             tanggal_lahir = input("Tanggal Lahir (YYYY-MM-DD): ").strip()
             if tanggal_lahir:
@@ -163,14 +149,12 @@ class UI:
                     print("Format tanggal salah! Gunakan format YYYY-MM-DD")
             else:
                 print("Tanggal lahir tidak boleh kosong!")
-        
-        # Alamat
+
         alamat = input("Alamat Lengkap: ").strip()
         while not alamat:
             print("Alamat tidak boleh kosong!")
             alamat = input("Alamat Lengkap: ").strip()
-        
-        # Riwayat penyakit (opsional)
+
         riwayat_penyakit = input("Riwayat Penyakit (kosongkan jika tidak ada): ").strip()
         if not riwayat_penyakit:
             riwayat_penyakit = "Tidak ada"
@@ -186,7 +170,6 @@ class UI:
         }
     
     def pilih_poli(self):
-        """Menu untuk memilih poli puskesmas"""
         print("\n=== PILIH POLI ===")
         print("1. Poli Umum")
         print("2. Poli Gigi")
@@ -206,7 +189,6 @@ class UI:
                 print("Pilihan tidak valid! Silakan pilih 1-3.")
     
     def tampilkan_pendaftaran_master_berhasil(self, nama, qr_path):
-        """Menampilkan informasi setelah pendaftaran master berhasil (tanpa antrean)"""
         self.clear_screen()
         print("="*70)
         print("           PENDAFTARAN PASIEN BERHASIL!")
@@ -221,7 +203,6 @@ class UI:
         print("3. Scan QR Code dan pilih poli saat ingin berobat")
     
     def tampilkan_antrean_lama_berhasil(self, nama, no_antrean, poli):
-        """Menampilkan informasi setelah pasien lama berhasil daftar antrean"""
         self.clear_screen()
         print("="*70)
         print("           PENDAFTARAN ANTREAN BERHASIL!")
@@ -233,7 +214,6 @@ class UI:
         print("\nSilakan menunggu dipanggil!")
     
     def tampilkan_pasien_sudah_daftar(self, nama, no_antrean, poli):
-        """Menampilkan informasi jika pasien sudah daftar hari ini"""
         self.clear_screen()
         print("="*70)
         print("           INFORMASI ANTREAN")
@@ -246,10 +226,8 @@ class UI:
         print("Silakan menunggu dipanggil.")
     
     def tampilkan_data_pasien_lengkap(self, pasien_master, pasien_antrean=None):
-        """Menampilkan data lengkap pasien dari master dan antrean"""
         self.clear_screen()
         print("=== DATA LENGKAP PASIEN ===\n")
-        
         print("DATA MASTER PASIEN:")
         print("-" * 60)
         print(f"ID Pasien     : {pasien_master.get('id_pasien', '-')}")
@@ -271,15 +249,11 @@ class UI:
             print(f"Status        : {pasien_antrean.get('status', '-')}")
             print(f"Waktu Daftar  : {pasien_antrean.get('waktu_daftar', '-')}")
             print(f"Waktu Panggil : {pasien_antrean.get('waktu_panggil', '-')}")
-        
-        print("-" * 60)
+            print("-" * 60)
     
     def form_edit_pasien(self, pasien_data):
-        """Form untuk edit data pasien"""
         print("\n=== EDIT DATA PASIEN ===")
         print("Kosongkan field jika tidak ingin mengubah\n")
-        
-        # NIK
         nik_lama = pasien_data.get('nik', '')
         while True:
             nik_baru = input(f"NIK ({nik_lama}): ").strip()
@@ -291,13 +265,11 @@ class UI:
             else:
                 print("NIK harus 16 digit angka!")
         
-        # Nama
         nama_lama = pasien_data.get('nama', '')
         nama_baru = input(f"Nama ({nama_lama}): ").strip()
         if not nama_baru:
             nama_baru = nama_lama
-        
-        # Jenis Kelamin
+
         jk_lama = pasien_data.get('jenis_kelamin', '')
         print(f"\nJenis Kelamin sekarang: {jk_lama}")
         print("1. Laki-laki")
@@ -311,14 +283,12 @@ class UI:
             jk_baru = 'Perempuan'
         else:
             jk_baru = jk_lama
-        
-        # Tempat Lahir
+
         tempat_lama = pasien_data.get('tempat_lahir', '')
         tempat_baru = input(f"Tempat Lahir ({tempat_lama}): ").strip()
         if not tempat_baru:
             tempat_baru = tempat_lama
-        
-        # Tanggal Lahir
+
         tgl_lama = pasien_data.get('tanggal_lahir', '')
         while True:
             tgl_baru = input(f"Tanggal Lahir ({tgl_lama}): ").strip()
@@ -331,14 +301,12 @@ class UI:
                     break
                 except ValueError:
                     print("Format tanggal salah! Gunakan YYYY-MM-DD")
-        
-        # Alamat
+
         alamat_lama = pasien_data.get('alamat', '')
         alamat_baru = input(f"Alamat ({alamat_lama}): ").strip()
         if not alamat_baru:
             alamat_baru = alamat_lama
-        
-        # Riwayat Penyakit
+
         print(f"Kosongkan field jika tidak ingin mengubah | ganti dengan '-' jika tidak ada riwayat")
         riwayat_lama = pasien_data.get('riwayat_penyakit', '')
         riwayat_baru = input(f"Riwayat Penyakit ({riwayat_lama}): ").strip()
@@ -367,31 +335,24 @@ class UI:
         for field in fields:
             lama = str(data_lama.get(field, '-'))
             baru = str(data_baru.get(field, '-'))
-            
-            # Tandai jika ada perubahan
+
             if lama != baru:
                 print(f"{field.replace('_', ' ').title():<20}{lama:<30}{baru:<30} *")
             else:
                 print(f"{field.replace('_', ' ').title():<20}{lama:<30}{baru:<30}")
-        
         print("-" * 80)
         print("* = Ada perubahan")
     
     def input_nik_valid(self):
-        """Helper untuk input NIK yang valid"""
         while True:
             nik = input("\nMasukkan NIK (16 digit): ").strip()
-            
             if not nik:
                 print("NIK tidak boleh kosong!")
                 continue
-                
             if len(nik) != 16:
                 print("NIK harus 16 digit!")
                 continue
-                
             if not nik.isdigit():
                 print("NIK hanya boleh berisi angka!")
                 continue
-                
             return nik

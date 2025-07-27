@@ -16,12 +16,8 @@ class CRUDHandler:
     # === CREATE ===
     
     def daftarkan_pasien_baru(self):
-        """Create - Mendaftarkan pasien baru ke database master (tanpa antrean)"""
         try:
-            # Ambil data dari form UI
             data_pasien = self.ui.form_pendaftaran_pasien_baru()
-            
-            # Cek apakah NIK sudah ada
             existing = self.db.cari_pasien_master(nik=data_pasien['nik'])
             if not existing.empty:
                 print(f"\nNIK {data_pasien['nik']} sudah terdaftar!")
@@ -29,14 +25,11 @@ class CRUDHandler:
                 input("\nTekan Enter untuk kembali ke menu...")
                 return
             
-            # Generate ID unik untuk pasien
             id_pasien = str(uuid.uuid4())
             
-            # Generate QR Code
             qr_filename = f"{id_pasien}.png"
             qr_path = self.qr_generator.generate_qr_code(id_pasien, self.qr_dir / qr_filename)
             
-            # Simpan ke database master saja (tidak langsung ke antrean)
             self.db.tambah_pasien_baru_master(
                 id_pasien=id_pasien,
                 nik=data_pasien['nik'],
@@ -48,8 +41,7 @@ class CRUDHandler:
                 riwayat_penyakit=data_pasien['riwayat_penyakit'],
                 qr_code_path=str(qr_path)
             )
-            
-            # Tampilkan hasil pendaftaran master (tanpa nomor antrean)
+
             self.ui.tampilkan_pendaftaran_master_berhasil(data_pasien['nama'], str(qr_path))
             
         except Exception as e:
@@ -58,11 +50,8 @@ class CRUDHandler:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def daftarkan_antrean_pasien_lama(self):
-        """Pendaftaran antrean untuk pasien lama dengan scan QR atau NIK"""
         self.ui.clear_screen()
         print("=== PENDAFTARAN ANTREAN ===\n")
-        
-        # Pilihan metode pencarian
         print("Cari data pasien dengan:")
         print("1. Scan QR Code")
         print("2. Input NIK")
@@ -73,7 +62,6 @@ class CRUDHandler:
             pasien_master = None
             
             if choice == '1':
-                # Scan QR Code
                 print("\nSilakan scan QR Code pada kartu Anda...")
                 id_pasien = self.qr_scanner.scan_from_camera()
                 if not id_pasien:
@@ -81,14 +69,10 @@ class CRUDHandler:
                     input("\nTekan Enter untuk kembali ke menu...")
                     return
                     
-                # Cari data pasien di master berdasarkan ID
                 pasien_master = self.db.cari_pasien_master(id_pasien=id_pasien)
                 
             elif choice == '2':
-                # Input NIK dengan validasi
                 nik = self.ui.input_nik_valid()
-                    
-                # Cari data pasien di master berdasarkan NIK
                 pasien_master = self.db.cari_pasien_master(nik=nik)
                 if not pasien_master.empty:
                     id_pasien = pasien_master.iloc[0]['id_pasien']
@@ -98,7 +82,6 @@ class CRUDHandler:
                 input("\nTekan Enter untuk kembali ke menu...")
                 return
             
-            # Validasi data pasien
             if pasien_master.empty:
                 if choice == '1':
                     print("\nData pasien tidak ditemukan!")
@@ -111,14 +94,11 @@ class CRUDHandler:
 
             data_pasien = pasien_master.iloc[0]
             
-            # Tampilkan data pasien yang ditemukan
             print(f"\n✓ Data pasien ditemukan:")
             print(f"Nama: {data_pasien['nama']}")
             print(f"NIK: {data_pasien['nik']}")
             
-            # Cek apakah sudah daftar antrean hari ini
             if self.db.cek_pasien_sudah_antrean_hari_ini(id_pasien):
-                # Ambil data antrean hari ini
                 antrean_hari_ini = self.db.cari_pasien(id_pasien)
                 if not antrean_hari_ini.empty:
                     data_antrean = antrean_hari_ini.iloc[0]
@@ -130,11 +110,8 @@ class CRUDHandler:
                 input("\nTekan Enter untuk kembali ke menu...")
                 return
             
-            # Pilih poli
             poli = self.ui.pilih_poli()
             nomor_antrean = self.db.get_next_nomor_antrean()
-            
-            # Tambah ke antrean harian
             success = self.db.tambah_antrean_harian(id_pasien, poli, nomor_antrean)
             if success:
                 self.antrean.tambah_pasien(id_pasien)
@@ -163,7 +140,6 @@ class CRUDHandler:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def tampilkan_terpanggil(self):
-        """Read - Menampilkan daftar pasien yang sudah dipanggil"""
         daftar_terpanggil = []
         
         for id_pasien in reversed(list(self.antrean.sudah_dipanggil)):
@@ -176,7 +152,6 @@ class CRUDHandler:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def tampilkan_selesai(self):
-        """Read - Menampilkan daftar pasien yang sudah selesai"""
         self.ui.clear_screen()
         print("=== DAFTAR PASIEN SELESAI ===\n")
         
@@ -198,11 +173,9 @@ class CRUDHandler:
         input("\nTekan Enter untuk kembali ke menu...")
     
     def cari_pasien(self):
-        """Cari data pasien di master dan antrean"""
         while True:
             self.ui.clear_screen()
             print("=== CARI DATA PASIEN ===\n")
-            
             print("Cari pasien berdasarkan:")
             print("1. Scan QR Code")
             print("2. Input NIK")
@@ -223,8 +196,6 @@ class CRUDHandler:
                     
             elif choice == '2':
                 nik = self.ui.input_nik_valid()
-                
-                # Cari berdasarkan NIK di master
                 print(f"Mencari pasien dengan NIK: {nik}")
                 hasil_master = self.db.cari_pasien_master(nik=nik)
                 if hasil_master.empty:
@@ -240,7 +211,6 @@ class CRUDHandler:
                 input("\nTekan Enter untuk melanjutkan...")
                 continue
             
-            # Cari di database master
             hasil_master = self.db.cari_pasien_master(id_pasien=id_pasien)
             if hasil_master.empty:
                 print("\nData pasien tidak ditemukan!")
@@ -249,11 +219,9 @@ class CRUDHandler:
         
             pasien_master = hasil_master.iloc[0].to_dict()
             
-            # Cari di antrean hari ini
             hasil_antrean = self.db.cari_pasien(id_pasien)
-            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty else None
+            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty : None
             
-            # Tampilkan data lengkap
             self.ui.tampilkan_data_pasien_lengkap(pasien_master, pasien_antrean)
             
             input("\nTekan Enter untuk melanjutkan...")
@@ -287,7 +255,6 @@ class CRUDHandler:
             elif choice == '2':
                 nik = self.ui.input_nik_valid()
                 
-                # Cari berdasarkan NIK
                 print(f"Mencari pasien dengan NIK: {nik}")
                 hasil_master = self.db.cari_pasien_master(nik=nik)
                 if hasil_master.empty:
@@ -302,8 +269,7 @@ class CRUDHandler:
                 print("\nPilihan tidak valid!")
                 input("\nTekan Enter untuk melanjutkan...")
                 continue
-            
-            # Cari data master pasien
+
             hasil_master = self.db.cari_pasien_master(id_pasien=id_pasien)
             if hasil_master.empty:
                 print("\nData master pasien tidak ditemukan!")
@@ -311,39 +277,31 @@ class CRUDHandler:
                 continue
             
             pasien_master = hasil_master.iloc[0].to_dict()
-            
-            # Cek apakah ada di antrean hari ini
+
             hasil_antrean = self.db.cari_pasien(id_pasien)
-            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty else None
-            
-            # Tampilkan data lengkap
+            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty : None
+
             self.ui.tampilkan_data_pasien_lengkap(pasien_master, pasien_antrean)
-            
-            # Konfirmasi edit
+
             lanjut = input("\nApakah Anda ingin mengedit data ini? (y/n): ")
             if lanjut.lower() != 'y':
                 print("Edit dibatalkan.")
                 input("\nTekan Enter untuk melanjutkan...")
                 continue
             
-            # Form edit
             data_baru = self.ui.form_edit_pasien(pasien_master)
-            
-            # Tampilkan perbandingan
+
             self.ui.tampilkan_perbandingan_data(pasien_master, data_baru)
-            
-            # Konfirmasi perubahan
+
             konfirmasi = input("\nApakah Anda yakin ingin menyimpan perubahan? (y/n): ")
             if konfirmasi.lower() == 'y':
-                # Cek duplikasi NIK jika NIK diubah
                 if data_baru['nik'] != pasien_master['nik']:
                     existing_nik = self.db.cari_pasien_master(nik=data_baru['nik'])
                     if not existing_nik.empty:
                         print(f"\nError: NIK {data_baru['nik']} sudah digunakan oleh pasien lain!")
                         input("\nTekan Enter untuk melanjutkan...")
                         continue
-                
-                # Update data master
+
                 success = self.db.update_data_master_pasien(id_pasien, **data_baru)
                 
                 if success:
@@ -387,8 +345,7 @@ class CRUDHandler:
                     
             elif choice == '2':
                 nik = self.ui.input_nik_valid()
-                
-                # Cari berdasarkan NIK
+
                 hasil_master = self.db.cari_pasien_master(nik=nik)
                 if hasil_master.empty:
                     print("\nPasien dengan NIK tersebut tidak ditemukan!")
@@ -400,57 +357,125 @@ class CRUDHandler:
                 print("\nPilihan tidak valid!")
                 input("\nTekan Enter untuk melanjutkan...")
                 continue
-            
-            hasil = self.db.cari_pasien(id_pasien)
-            if hasil.empty:
-                print("\nPasien tidak ditemukan!")
-                input("\nTekan Enter untuk melanjutkan...")
-                continue
-            
-            print("\nData pasien yang akan dihapus:")
-            print("-" * 70)
-            for _, pasien in hasil.iterrows():
-                print(f"ID           : {pasien['id']}")
-                print(f"Nama         : {pasien['nama']}")
-                print(f"No. Antrean  : {pasien['nomor_antrean']}")
-                print(f"NIK          : {pasien.get('nik', '-')}")
-                print(f"Poli         : {pasien.get('poli', '-')}")
-                print(f"Status       : {pasien['status']}")
-            print("-" * 70)
-            
-            confirm = input("\nAnda yakin ingin menghapus data pasien ini? (y/n): ")
-            if confirm.lower() == 'y':
+        
+        # Cari data master pasien
+        hasil_master = self.db.cari_pasien_master(id_pasien=id_pasien)
+        if hasil_master.empty:
+            print("\nData master pasien tidak ditemukan!")
+            input("\nTekan Enter untuk melanjutkan...")
+            continue
+        
+        pasien_master = hasil_master.iloc[0]
+        
+        # Cek apakah ada data antrean hari ini
+        hasil_antrean = self.db.cari_pasien(id_pasien)
+        
+        print("\n" + "="*70)
+        print("DATA PASIEN YANG AKAN DIHAPUS:")
+        print("="*70)
+        print(f"ID Pasien     : {pasien_master['id_pasien']}")
+        print(f"NIK           : {pasien_master['nik']}")
+        print(f"Nama          : {pasien_master['nama']}")
+        print(f"Jenis Kelamin : {pasien_master.get('jenis_kelamin', '-')}")
+        print(f"Tempat Lahir  : {pasien_master.get('tempat_lahir', '-')}")
+        print(f"Tanggal Lahir : {pasien_master.get('tanggal_lahir', '-')}")
+        print(f"Alamat        : {pasien_master.get('alamat', '-')}")
+        print(f"Tanggal Daftar: {pasien_master.get('tanggal_daftar_pertama', '-')}")
+        
+        if not hasil_antrean.empty:
+            antrean_data = hasil_antrean.iloc[0]
+            print(f"\nDATA ANTREAN HARI INI:")
+            print(f"Nomor Antrean : {antrean_data['nomor_antrean']}")
+            print(f"Poli          : {antrean_data.get('poli', '-')}")
+            print(f"Status        : {antrean_data['status']}")
+            print(f"Waktu Daftar  : {antrean_data.get('waktu_daftar', '-')}")
+        
+        print("="*70)
+        print("⚠️  PERINGATAN:")
+        print("Menghapus pasien akan menghapus:")
+        print("✗ Data master pasien (PERMANEN)")
+        print("✗ Data antrean harian (jika ada)")
+        print("✗ Semua riwayat pemeriksaan")
+        print("✗ File QR Code")
+        print("="*70)
+        
+        confirm = input("\nAnda YAKIN ingin menghapus SEMUA data pasien ini? (ketik 'HAPUS' untuk konfirmasi): ")
+        if confirm == 'HAPUS':
+            try:
+                success_count = 0
+                error_messages = []
+                
+                # 1. Hapus dari antrean memory
                 self.hapus_dari_antrean(id_pasien)
-
+                print("✓ Dihapus dari antrean memory")
+                
+                # 2. Hapus data antrean harian (jika ada)
+                if not hasil_antrean.empty:
+                    if self.db.hapus_pasien(id_pasien):
+                        print("✓ Data antrean harian berhasil dihapus")
+                        success_count += 1
+                    else:
+                        error_messages.append("✗ Gagal menghapus data antrean harian")
+                
+                # 3. Hapus data pemeriksaan (jika ada)
+                if self.db.hapus_data_pemeriksaan_pasien(id_pasien):
+                    print("✓ Data pemeriksaan berhasil dihapus")
+                    success_count += 1
+                else:
+                    print("ℹ️  Tidak ada data pemeriksaan untuk dihapus")
+                
+                # 4. Hapus file QR Code
                 qr_file_path = self.qr_dir / f"{id_pasien}.png"
                 try:
                     if qr_file_path.exists():
                         qr_file_path.unlink()
-                        print(f"\nFile QR code berhasil dihapus: {qr_file_path}")
+                        print("✓ File QR Code berhasil dihapus")
+                        success_count += 1
+                    else:
+                        print("ℹ️  File QR Code tidak ditemukan")
                 except Exception as e:
-                    print(f"\nGagal menghapus file QR code: {e}")
+                    error_messages.append(f"✗ Gagal menghapus file QR Code: {e}")
                 
-                if self.db.hapus_pasien(id_pasien):
-                    print("\nData pasien berhasil dihapus!")
-                    input("\nTekan Enter untuk melanjutkan...")
-                    break
+                # 5. Hapus data master pasien (YANG PALING PENTING!)
+                if self.db.hapus_master_pasien(id_pasien):
+                    print("✓ Data master pasien berhasil dihapus")
+                    success_count += 1
                 else:
-                    print("\nGagal menghapus data pasien!")
-                    input("\nTekan Enter untuk melanjutkan...")
-                    continue
-            else:
-                print("\nPenghapusan dibatalkan.")
+                    error_messages.append("✗ Gagal menghapus data master pasien")
+                
+                # Summary hasil penghapusan
+                print("\n" + "="*50)
+                if error_messages:
+                    print("⚠️  PENGHAPUSAN SEBAGIAN BERHASIL:")
+                    print(f"✓ Berhasil: {success_count} operasi")
+                    print("✗ Error:")
+                    for error in error_messages:
+                        print(f"  {error}")
+                else:
+                    print("🎉 SEMUA DATA PASIEN BERHASIL DIHAPUS!")
+                    print(f"✓ Total operasi berhasil: {success_count}")
+                    print(f"Pasien '{pasien_master['nama']}' telah dihapus dari sistem.")
+                print("="*50)
+                
+                input("\nTekan Enter untuk melanjutkan...")
+                break
+                
+            except Exception as e:
+                print(f"\n❌ Error tak terduga saat menghapus pasien: {e}")
                 input("\nTekan Enter untuk melanjutkan...")
                 continue
+        else:
+            print("\n❌ Penghapusan dibatalkan.")
+            print("(Untuk menghapus, ketik 'HAPUS' dengan huruf kapital)")
+            input("\nTekan Enter untuk melanjutkan...")
+            continue
     
     # === HELPER METHODS ===
     
     def hapus_dari_antrean(self, id_pasien):
         """Helper - Menghapus pasien dari antrean aktif atau sudah dipanggil"""
-        # Cari di antrean aktif
         self.antrean.hapus_dari_aktif(id_pasien)
-        
-        # Cari di antrean yang sudah dipanggil
+
         self.antrean.hapus_dari_dipanggil(id_pasien)
     
     def cari_dan_cetak_ulang_qr(self):
@@ -469,20 +494,17 @@ class CRUDHandler:
             if pilihan == "0":
                 break
             elif pilihan == "1":
-                # Input NIK
                 nik = self.ui.input_nik_valid()
                 if nik is None:
                     continue
-                
-                # Cari pasien berdasarkan NIK
+
                 pasien_data = self.db.cari_pasien_master(nik=nik)
                 
                 if pasien_data.empty:
                     print(f"\nPasien dengan NIK {nik} tidak ditemukan!")
                     input("\nTekan Enter untuk melanjutkan...")
                     continue
-                
-                # Tampilkan data pasien yang ditemukan
+
                 pasien = pasien_data.iloc[0]
                 print("\n✅ Data pasien ditemukan:")
                 print("-" * 50)
@@ -494,21 +516,18 @@ class CRUDHandler:
                 print(f"Tanggal Lahir: {pasien.get('tanggal_lahir', '-')}")
                 print(f"Alamat       : {pasien.get('alamat', '-')}")
                 print("-" * 50)
-                
-                # Konfirmasi cetak ulang QR
+
                 confirm = input("\nCetak ulang QR code untuk pasien ini? (y/n): ").strip().lower()
                 if confirm == 'y':
                     id_pasien = pasien['id_pasien']
                     
                     try:
-                        # Generate ulang QR code
                         qr_filename = f"{id_pasien}.png"
                         qr_path = self.qr_generator.generate_qr_code(id_pasien, str(self.qr_dir / qr_filename))
                         
                         print(f"\n✅ QR Code berhasil digenerate ulang!")
                         print(f"📁 Lokasi file: {qr_path}")
-                        
-                        # Tampilkan QR code jika memungkinkan
+
                         try:
                             self.qr_generator.show_qr_code(qr_path)
                             print("\n🖼️  QR Code ditampilkan di jendela terpisah.")
