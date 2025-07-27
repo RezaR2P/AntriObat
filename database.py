@@ -33,7 +33,6 @@ class Database:
         if self.pemeriksaan_path.exists():
             return pd.read_excel(str(self.pemeriksaan_path))
         else:
-            # Buat dataframe kosong dengan kolom untuk data pemeriksaan
             df = pd.DataFrame(columns=['id_pemeriksaan', 'id_pasien', 'nama_pasien', 'tanggal_pemeriksaan',
                                     'keluhan', 'tekanan_darah', 'nadi', 'suhu', 'diagnosis', 'tindakan', 
                                     'resep', 'catatan', 'waktu_periksa'])
@@ -224,7 +223,6 @@ class Database:
             print(f"Error saat update antrean from master: {e}")
 
     def hapus_master_pasien(self, id_pasien):
-        """Menghapus data master pasien berdasarkan ID"""
         try:
             idx = self.master_pasien[self.master_pasien['id_pasien'] == id_pasien].index
             if len(idx) > 0:
@@ -237,7 +235,6 @@ class Database:
             return False
 
     def hapus_data_pemeriksaan_pasien(self, id_pasien):
-        """Menghapus semua data pemeriksaan pasien berdasarkan ID"""
         try:
             idx = self.data_pemeriksaan[self.data_pemeriksaan['id_pasien'] == id_pasien].index
             if len(idx) > 0:
@@ -251,7 +248,11 @@ class Database:
 
     def __del__(self):
         try:
-            self.save_data()
-            self.save_master_pasien()
-        except:
+            if hasattr(self, 'data_pasien') and self.data_pasien is not None:
+                self.save_data()
+            if hasattr(self, 'master_pasien') and self.master_pasien is not None:
+                self.save_master_pasien()
+            if hasattr(self, 'data_pemeriksaan') and self.data_pemeriksaan is not None:
+                self.save_data_pemeriksaan()
+        except Exception:
             pass

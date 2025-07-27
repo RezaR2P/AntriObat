@@ -22,7 +22,7 @@ class AudioManager:
     
     def __del__(self):
         try:
-            if self.engine:
+            if hasattr(self, 'engine') and self.engine:
                 self.engine.stop()
-        except:
-            pass
+        except Exception:
+            pass  # Silent fail untuk destructor

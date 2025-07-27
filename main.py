@@ -1,6 +1,5 @@
 import datetime
 from pathlib import Path
-
 from database import Database
 from qr_handler import QRGenerator, QRScanner
 from audio import AudioManager

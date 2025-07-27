@@ -324,7 +324,6 @@ class UI:
         }
     
     def tampilkan_perbandingan_data(self, data_lama, data_baru):
-        """Tampilkan perbandingan data lama vs baru"""
         print("\n=== PERBANDINGAN DATA ===")
         print("-" * 80)
         print(f"{'Field':<20}{'Data Lama':<30}{'Data Baru':<30}")
@@ -345,14 +344,21 @@ class UI:
     
     def input_nik_valid(self):
         while True:
-            nik = input("\nMasukkan NIK (16 digit): ").strip()
-            if not nik:
-                print("NIK tidak boleh kosong!")
+            try:
+                nik = input("\nMasukkan NIK (16 digit): ").strip()
+                if not nik:
+                    print("NIK tidak boleh kosong!")
+                    continue
+                if len(nik) != 16:
+                    print("NIK harus 16 digit!")
+                    continue
+                if not nik.isdigit():
+                    print("NIK hanya boleh berisi angka!")
+                    continue
+                return nik
+            except KeyboardInterrupt:
+                print("\nInput dibatalkan.")
+                return None
+            except Exception as e:
+                print(f"Error input: {e}")
                 continue
-            if len(nik) != 16:
-                print("NIK harus 16 digit!")
-                continue
-            if not nik.isdigit():
-                print("NIK hanya boleh berisi angka!")
-                continue
-            return nik

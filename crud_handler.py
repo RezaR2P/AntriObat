@@ -1,5 +1,5 @@
 import uuid
-import pandas as pd
+import pandas as pd  # ✅ Sudah ada, tapi perlu dipastikan
 
 class CRUDHandler:
     def __init__(self, sistem_antrean):
@@ -167,7 +167,7 @@ class CRUDHandler:
             print("-" * 70)
             
             for i, (_, pasien) in enumerate(selesai.iterrows(), 1):
-                waktu = pasien['waktu_panggil'] if pd.notna(pasien['waktu_panggil']) else '-'
+                waktu = pasien['waktu_panggil'] if pd.notna(pasien['waktu_panggil']) else '-'  # ✅ Fix: pd.notna()
                 print(f"{i:<5}{pasien['nomor_antrean']:<15}{pasien['nama']:<30}{waktu:<20}")
         
         input("\nTekan Enter untuk kembali ke menu...")
@@ -220,7 +220,7 @@ class CRUDHandler:
             pasien_master = hasil_master.iloc[0].to_dict()
             
             hasil_antrean = self.db.cari_pasien(id_pasien)
-            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty : None
+            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty else None  # ✅ Fixed
             
             self.ui.tampilkan_data_pasien_lengkap(pasien_master, pasien_antrean)
             
@@ -279,7 +279,7 @@ class CRUDHandler:
             pasien_master = hasil_master.iloc[0].to_dict()
 
             hasil_antrean = self.db.cari_pasien(id_pasien)
-            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty : None
+            pasien_antrean = hasil_antrean.iloc[0].to_dict() if not hasil_antrean.empty else None  # ✅ Fixed
 
             self.ui.tampilkan_data_pasien_lengkap(pasien_master, pasien_antrean)
 
@@ -357,118 +357,118 @@ class CRUDHandler:
                 print("\nPilihan tidak valid!")
                 input("\nTekan Enter untuk melanjutkan...")
                 continue
-        
-        # Cari data master pasien
-        hasil_master = self.db.cari_pasien_master(id_pasien=id_pasien)
-        if hasil_master.empty:
-            print("\nData master pasien tidak ditemukan!")
-            input("\nTekan Enter untuk melanjutkan...")
-            continue
-        
-        pasien_master = hasil_master.iloc[0]
-        
-        # Cek apakah ada data antrean hari ini
-        hasil_antrean = self.db.cari_pasien(id_pasien)
-        
-        print("\n" + "="*70)
-        print("DATA PASIEN YANG AKAN DIHAPUS:")
-        print("="*70)
-        print(f"ID Pasien     : {pasien_master['id_pasien']}")
-        print(f"NIK           : {pasien_master['nik']}")
-        print(f"Nama          : {pasien_master['nama']}")
-        print(f"Jenis Kelamin : {pasien_master.get('jenis_kelamin', '-')}")
-        print(f"Tempat Lahir  : {pasien_master.get('tempat_lahir', '-')}")
-        print(f"Tanggal Lahir : {pasien_master.get('tanggal_lahir', '-')}")
-        print(f"Alamat        : {pasien_master.get('alamat', '-')}")
-        print(f"Tanggal Daftar: {pasien_master.get('tanggal_daftar_pertama', '-')}")
-        
-        if not hasil_antrean.empty:
-            antrean_data = hasil_antrean.iloc[0]
-            print(f"\nDATA ANTREAN HARI INI:")
-            print(f"Nomor Antrean : {antrean_data['nomor_antrean']}")
-            print(f"Poli          : {antrean_data.get('poli', '-')}")
-            print(f"Status        : {antrean_data['status']}")
-            print(f"Waktu Daftar  : {antrean_data.get('waktu_daftar', '-')}")
-        
-        print("="*70)
-        print("⚠️  PERINGATAN:")
-        print("Menghapus pasien akan menghapus:")
-        print("✗ Data master pasien (PERMANEN)")
-        print("✗ Data antrean harian (jika ada)")
-        print("✗ Semua riwayat pemeriksaan")
-        print("✗ File QR Code")
-        print("="*70)
-        
-        confirm = input("\nAnda YAKIN ingin menghapus SEMUA data pasien ini? (ketik 'HAPUS' untuk konfirmasi): ")
-        if confirm == 'HAPUS':
-            try:
-                success_count = 0
-                error_messages = []
-                
-                # 1. Hapus dari antrean memory
-                self.hapus_dari_antrean(id_pasien)
-                print("✓ Dihapus dari antrean memory")
-                
-                # 2. Hapus data antrean harian (jika ada)
-                if not hasil_antrean.empty:
-                    if self.db.hapus_pasien(id_pasien):
-                        print("✓ Data antrean harian berhasil dihapus")
-                        success_count += 1
-                    else:
-                        error_messages.append("✗ Gagal menghapus data antrean harian")
-                
-                # 3. Hapus data pemeriksaan (jika ada)
-                if self.db.hapus_data_pemeriksaan_pasien(id_pasien):
-                    print("✓ Data pemeriksaan berhasil dihapus")
-                    success_count += 1
-                else:
-                    print("ℹ️  Tidak ada data pemeriksaan untuk dihapus")
-                
-                # 4. Hapus file QR Code
-                qr_file_path = self.qr_dir / f"{id_pasien}.png"
-                try:
-                    if qr_file_path.exists():
-                        qr_file_path.unlink()
-                        print("✓ File QR Code berhasil dihapus")
-                        success_count += 1
-                    else:
-                        print("ℹ️  File QR Code tidak ditemukan")
-                except Exception as e:
-                    error_messages.append(f"✗ Gagal menghapus file QR Code: {e}")
-                
-                # 5. Hapus data master pasien (YANG PALING PENTING!)
-                if self.db.hapus_master_pasien(id_pasien):
-                    print("✓ Data master pasien berhasil dihapus")
-                    success_count += 1
-                else:
-                    error_messages.append("✗ Gagal menghapus data master pasien")
-                
-                # Summary hasil penghapusan
-                print("\n" + "="*50)
-                if error_messages:
-                    print("⚠️  PENGHAPUSAN SEBAGIAN BERHASIL:")
-                    print(f"✓ Berhasil: {success_count} operasi")
-                    print("✗ Error:")
-                    for error in error_messages:
-                        print(f"  {error}")
-                else:
-                    print("🎉 SEMUA DATA PASIEN BERHASIL DIHAPUS!")
-                    print(f"✓ Total operasi berhasil: {success_count}")
-                    print(f"Pasien '{pasien_master['nama']}' telah dihapus dari sistem.")
-                print("="*50)
-                
-                input("\nTekan Enter untuk melanjutkan...")
-                break
-                
-            except Exception as e:
-                print(f"\n❌ Error tak terduga saat menghapus pasien: {e}")
+            
+            # ✅ Fixed: Proper flow control - cari data master setelah dapat id_pasien
+            hasil_master = self.db.cari_pasien_master(id_pasien=id_pasien)
+            if hasil_master.empty:
+                print("\nData master pasien tidak ditemukan!")
                 input("\nTekan Enter untuk melanjutkan...")
                 continue
-        else:
-            print("\n❌ Penghapusan dibatalkan.")
-            print("(Untuk menghapus, ketik 'HAPUS' dengan huruf kapital)")
-            input("\nTekan Enter untuk melanjutkan...")
-            continue
+            
+            pasien_master = hasil_master.iloc[0]
+            
+            # Cek apakah ada data antrean hari ini
+            hasil_antrean = self.db.cari_pasien(id_pasien)
+            
+            print("\n" + "="*70)
+            print("DATA PASIEN YANG AKAN DIHAPUS:")
+            print("="*70)
+            print(f"ID Pasien     : {pasien_master['id_pasien']}")
+            print(f"NIK           : {pasien_master['nik']}")
+            print(f"Nama          : {pasien_master['nama']}")
+            print(f"Jenis Kelamin : {pasien_master.get('jenis_kelamin', '-')}")
+            print(f"Tempat Lahir  : {pasien_master.get('tempat_lahir', '-')}")
+            print(f"Tanggal Lahir : {pasien_master.get('tanggal_lahir', '-')}")
+            print(f"Alamat        : {pasien_master.get('alamat', '-')}")
+            print(f"Tanggal Daftar: {pasien_master.get('tanggal_daftar_pertama', '-')}")
+            
+            if not hasil_antrean.empty:
+                antrean_data = hasil_antrean.iloc[0]
+                print(f"\nDATA ANTREAN HARI INI:")
+                print(f"Nomor Antrean : {antrean_data['nomor_antrean']}")
+                print(f"Poli          : {antrean_data.get('poli', '-')}")
+                print(f"Status        : {antrean_data['status']}")
+                print(f"Waktu Daftar  : {antrean_data.get('waktu_daftar', '-')}")
+            
+            print("="*70)
+            print("⚠️  PERINGATAN:")
+            print("Menghapus pasien akan menghapus:")
+            print("✗ Data master pasien (PERMANEN)")
+            print("✗ Data antrean harian (jika ada)")
+            print("✗ Semua riwayat pemeriksaan")
+            print("✗ File QR Code")
+            print("="*70)
+            
+            confirm = input("\nAnda YAKIN ingin menghapus SEMUA data pasien ini? (ketik 'HAPUS' untuk konfirmasi): ")
+            if confirm == 'HAPUS':
+                try:
+                    success_count = 0
+                    error_messages = []
+                    
+                    # 1. Hapus dari antrean memory
+                    self.hapus_dari_antrean(id_pasien)
+                    print("✓ Dihapus dari antrean memory")
+                    
+                    # 2. Hapus data antrean harian (jika ada)
+                    if not hasil_antrean.empty:
+                        if self.db.hapus_pasien(id_pasien):
+                            print("✓ Data antrean harian berhasil dihapus")
+                            success_count += 1
+                        else:
+                            error_messages.append("✗ Gagal menghapus data antrean harian")
+                    
+                    # 3. Hapus data pemeriksaan (jika ada)
+                    if self.db.hapus_data_pemeriksaan_pasien(id_pasien):
+                        print("✓ Data pemeriksaan berhasil dihapus")
+                        success_count += 1
+                    else:
+                        print("ℹ️  Tidak ada data pemeriksaan untuk dihapus")
+                    
+                    # 4. Hapus file QR Code
+                    qr_file_path = self.qr_dir / f"{id_pasien}.png"
+                    try:
+                        if qr_file_path.exists():
+                            qr_file_path.unlink()
+                            print("✓ File QR Code berhasil dihapus")
+                            success_count += 1
+                        else:
+                            print("ℹ️  File QR Code tidak ditemukan")
+                    except Exception as e:
+                        error_messages.append(f"✗ Gagal menghapus file QR Code: {e}")
+                    
+                    # 5. Hapus data master pasien (YANG PALING PENTING!)
+                    if self.db.hapus_master_pasien(id_pasien):
+                        print("✓ Data master pasien berhasil dihapus")
+                        success_count += 1
+                    else:
+                        error_messages.append("✗ Gagal menghapus data master pasien")
+                    
+                    # Summary hasil penghapusan
+                    print("\n" + "="*50)
+                    if error_messages:
+                        print("⚠️  PENGHAPUSAN SEBAGIAN BERHASIL:")
+                        print(f"✓ Berhasil: {success_count} operasi")
+                        print("✗ Error:")
+                        for error in error_messages:
+                            print(f"  {error}")
+                    else:
+                        print("🎉 SEMUA DATA PASIEN BERHASIL DIHAPUS!")
+                        print(f"✓ Total operasi berhasil: {success_count}")
+                        print(f"Pasien '{pasien_master['nama']}' telah dihapus dari sistem.")
+                    print("="*50)
+                    
+                    input("\nTekan Enter untuk melanjutkan...")
+                    break
+                    
+                except Exception as e:
+                    print(f"\n❌ Error tak terduga saat menghapus pasien: {e}")
+                    input("\nTekan Enter untuk melanjutkan...")
+                    continue
+            else:
+                print("\n❌ Penghapusan dibatalkan.")
+                print("(Untuk menghapus, ketik 'HAPUS' dengan huruf kapital)")
+                input("\nTekan Enter untuk melanjutkan...")
+                continue
     
     # === HELPER METHODS ===
     
